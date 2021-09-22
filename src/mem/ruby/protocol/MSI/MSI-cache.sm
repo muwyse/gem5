@@ -1,3 +1,5 @@
+// -*- mode:c++ -*-
+
 /*
  * Copyright (c) 2009-2012 Mark D. Hill and David A. Wood
  * Copyright (c) 2010-2012 Advanced Micro Devices, Inc.
@@ -286,8 +288,16 @@ machine(MachineType:L1Cache, "MSI cache")
 
   // ACTIONS
   action(sendGetS, "gS", desc="Send GetS to the directory") {
-    // TODO: resume here
-    enqueue
+    // three variables in scope here automatically, from the call to trigger():
+    // address, cache_entry, tbe
+    enqueue(request_out, RequestMsg, issue_latency) {
+      // out_msg is in scope automatically when sending to out port
+      out_msg.addr := address;
+      out_msg.Type := CoherenceRequestType:GetS;
+      out_msg.Destination.add(mapAddressToMachine(address, MachineType:Directory));
+      out_msg.MessageSize := MessageSizeType:Control;
+      out_msg.Requestor := machineID;
+    }
   }
 
   action(z_stall, "z", desc="stall") {
